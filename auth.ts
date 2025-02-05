@@ -24,6 +24,7 @@ export const {
             if (session.user) {
                 session.user.name = token.name
                 session.user.email = token.email
+                session.user.role = token.role
             }
             return session
         },

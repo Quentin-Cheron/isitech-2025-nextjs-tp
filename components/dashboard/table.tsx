@@ -1,6 +1,11 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, {
+    useState,
+    useEffect,
+    startTransition,
+    useTransition,
+} from 'react'
 import {
     ColumnDef,
     ColumnFiltersState,
@@ -13,20 +18,22 @@ import {
     getSortedRowModel,
     useReactTable,
 } from '@tanstack/react-table'
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react'
+import { ArrowUpDown, Loader2, MoreHorizontal } from 'lucide-react'
+import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
-    DropdownMenu,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
     Table,
     TableBody,
@@ -35,7 +42,25 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
-import { getCourses } from '@/actions/course'
+import {
+    addCourseAction,
+    getCourses,
+    getCoursesByTeacherId,
+} from '@/actions/course'
+import { Textarea } from '../ui/textarea'
+import { useCurrentUser } from '@/hook/use-current-user'
+import { AddCourseSchema } from '@/schemas'
+import FormInput from '../custom/form-input'
+import { z } from 'zod'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+} from '../ui/dropdown-menu'
+import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu'
+import Link from 'next/link'
 
 type Course = {
     id: string
@@ -47,18 +72,44 @@ type Course = {
 }
 
 export default function DataTable() {
-    const [sorting, setSorting] = React.useState<SortingState>([])
-    const [columnFilters, setColumnFilters] =
-        React.useState<ColumnFiltersState>([])
-    const [columnVisibility, setColumnVisibility] =
-        React.useState<VisibilityState>({})
-    const [rowSelection, setRowSelection] = React.useState({})
-    const [data, setData] = React.useState<Course[]>([])
-    const [loading, setLoading] = React.useState(false)
+    const [sorting, setSorting] = useState<SortingState>([])
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+        {}
+    )
+    const [rowSelection, setRowSelection] = useState({})
+    const [data, setData] = useState<Course[]>([])
+    const [loading, setLoading] = useState(false)
+    const [isPending, startTransition] = useTransition()
+
+    const {
+        register: registerCourse,
+        handleSubmit: handleSubmitCourse,
+        reset: resetCourse,
+        formState: { errors: courseErrors },
+    } = useForm()
+
+    const AddCourse = async (values: z.infer<typeof AddCourseSchema>) => {
+        startTransition(() => {
+            addCourseAction({
+                ...values,
+                teacherId: user?.id || '',
+            })
+                .then((data) => {
+                    if (data?.error) {
+                        return
+                    }
+                    getData()
+                })
+                .catch((err) => console.log(err))
+        })
+    }
+
+    const user = useCurrentUser()
 
     const getData = async () => {
         setLoading(true)
-        const res = await getCourses()
+        const res = await getCoursesByTeacherId(user?.id || '')
         if (res.error) {
             console.log(res.error)
             return
@@ -147,6 +198,36 @@ export default function DataTable() {
                 <div className="capitalize">{row.getValue('schedule')}</div>
             ),
         },
+        {
+            id: 'actions',
+            enableHiding: false,
+            cell: ({ row }) => {
+                const course = row.original
+
+                return (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem>
+                                <Link
+                                    href={`/dashboard/courses/update/${course?.id}`}
+                                >
+                                    Update
+                                </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem>Delete</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )
+            },
+        },
     ]
 
     const table = useReactTable({
@@ -170,6 +251,100 @@ export default function DataTable() {
 
     return (
         <div className="w-full">
+            <Dialog
+                onOpenChange={() => {
+                    resetCourse()
+                }}
+            >
+                <DialogTrigger asChild>
+                    <Button
+                        variant="outline"
+                        className="w-max ml-auto mb-2 block"
+                    >
+                        Add a course
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                    <form onSubmit={handleSubmitCourse(AddCourse)}>
+                        <DialogHeader>
+                            <DialogTitle>Add course</DialogTitle>
+                            <DialogDescription>
+                                Add a new course to your list
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                            <FormInput
+                                label="Title"
+                                name="title"
+                                register={registerCourse}
+                                validation={{ required: 'Title is required' }}
+                                errors={courseErrors}
+                            />
+                            <FormInput
+                                label="Description"
+                                name="description"
+                                textArea
+                                register={registerCourse}
+                                validation={{
+                                    required: 'Description is required',
+                                }}
+                                errors={courseErrors}
+                            />
+                            <FormInput
+                                label="Instrument"
+                                name="instrument"
+                                register={registerCourse}
+                                validation={{
+                                    required: 'Instrument is required',
+                                }}
+                                errors={courseErrors}
+                            />
+                            <FormInput
+                                label="Level"
+                                name="level"
+                                register={registerCourse}
+                                validation={{
+                                    required: 'level is required',
+                                }}
+                                errors={courseErrors}
+                            />
+                            <FormInput
+                                label="Capacity"
+                                name="capacity"
+                                type="number"
+                                register={registerCourse}
+                                validation={{
+                                    required: 'capacity is required',
+                                }}
+                                errors={courseErrors}
+                            />
+                            <FormInput
+                                label="Schedule"
+                                name="schedule"
+                                type="date"
+                                register={registerCourse}
+                                validation={{
+                                    required: 'schedule is required',
+                                }}
+                                errors={courseErrors}
+                            />
+                        </div>
+                        <DialogFooter>
+                            <Button type="submit">
+                                {isPending ? (
+                                    <div>
+                                        <Loader2 className="animate-spin" />
+                                        <span>Saving...</span>
+                                    </div>
+                                ) : (
+                                    <span>Save course</span>
+                                )}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
             <div className="rounded-md border">
                 <Table>
                     <TableHeader>

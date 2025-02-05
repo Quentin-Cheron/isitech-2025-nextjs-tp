@@ -44,6 +44,7 @@ export function LoginForm() {
         defaultValues: {
             email: '',
             password: '',
+            role: 'STUDENT',
         },
     })
     const onSubmit = async (values: z.infer<typeof LoginSchema>) => {
@@ -69,6 +70,7 @@ export function LoginForm() {
             headerLabel="Welcome back !"
             backButtonLabel="Don't have an account ?"
             backButtonHref="/auth/register"
+            login
         >
             <Form {...form}>
                 <form
@@ -109,16 +111,6 @@ export function LoginForm() {
                                                 type="password"
                                             />
                                         </FormControl>
-                                        <Button
-                                            size="sm"
-                                            variant="link"
-                                            className="px-0 font-normal"
-                                            asChild
-                                        >
-                                            <Link href="/auth/reset">
-                                                Forgot password?
-                                            </Link>
-                                        </Button>
                                         <FormMessage />
                                     </FormItem>
                                 )}

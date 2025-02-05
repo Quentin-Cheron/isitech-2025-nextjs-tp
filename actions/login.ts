@@ -3,7 +3,6 @@ import * as z from 'zod'
 
 import { signIn } from '@/auth'
 import { LoginSchema } from '@/schemas'
-import { DEFAULT_LOGIN_REDIRECT } from '@/routes'
 import { AuthError } from 'next-auth'
 import { getUserByEmail } from '@/data/user'
 
@@ -33,8 +32,9 @@ export async function login(
         await signIn('credentials', {
             email: email.toLowerCase(),
             password,
-            redirectTo: callbackUrl || DEFAULT_LOGIN_REDIRECT,
+            role: values.role,
         })
+
         return { success: 'Logged in successfully!' }
     } catch (error) {
         console.error(error)

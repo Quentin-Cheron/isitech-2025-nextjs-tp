@@ -7,10 +7,6 @@ import {
     authRoutes,
     publicRoutes,
 } from '@/routes'
-import { currentRole } from './lib/auth'
-import { NextRequest, NextResponse } from 'next/server'
-
-import { privateRoutes } from '@/routes'
 
 const { auth } = NextAuth(authConfig)
 

@@ -29,7 +29,7 @@ export async function register(values: z.infer<typeof RegisterSchema>) {
             name,
             email: email.toLowerCase(),
             password: hashedPassword,
-            role: 'USER',
+            role: values.role,
         },
     })
 

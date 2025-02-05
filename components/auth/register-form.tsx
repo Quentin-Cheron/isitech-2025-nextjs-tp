@@ -1,6 +1,8 @@
 'use client'
 
 import * as z from 'zod'
+import { useSearchParams } from 'next/navigation'
+
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 
@@ -31,23 +33,30 @@ export function RegisterForm() {
 
     const [isPending, startTransition] = useTransition()
 
+    const searchParams = useSearchParams()
+    const teacherParam = searchParams.get('teacher')
+
     const form = useForm<z.infer<typeof RegisterSchema>>({
         resolver: zodResolver(RegisterSchema),
         defaultValues: {
             email: '',
             password: '',
             name: '',
+            role: 'STUDENT',
         },
     })
+
     const onSubmit = async (values: z.infer<typeof RegisterSchema>) => {
         setError('')
         setSuccess('')
 
         startTransition(() => {
-            register(values).then((data) => {
-                setError(data.error)
-                setSuccess(data.success)
-            })
+            register({ ...values, role: teacherParam ? 'TEACHER' : 'STUDENT' })
+                .then((data) => {
+                    setError(data.error)
+                    setSuccess(data.success)
+                })
+                .catch(() => setError('Something went wrong'))
         })
     }
     return (
@@ -55,6 +64,7 @@ export function RegisterForm() {
             headerLabel="Create an account"
             backButtonLabel="Already have an account ?"
             backButtonHref="/auth/login"
+            teacher
         >
             <Form {...form}>
                 <form
