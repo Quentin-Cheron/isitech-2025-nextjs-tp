@@ -21,11 +21,10 @@ export const {
                 session.user.id = token.sub
             }
 
-            if (session.user) {
-                session.user.name = token.name
-                session.user.email = token.email
-                session.user.role = token.role
-            }
+            session.user.name = token.name ?? session.user.name
+            session.user.email = token.email ?? session.user.email
+            session.user.role = token.role ?? 'user'
+
             return session
         },
         async jwt({ token }) {
@@ -33,11 +32,11 @@ export const {
 
             const existingUser = await getUserById(token.sub)
 
-            if (!existingUser) return token
-
-            token.name = existingUser.name
-            token.email = existingUser.email
-            token.role = existingUser.role
+            if (existingUser) {
+                token.name = existingUser.name ?? token.name
+                token.email = existingUser.email ?? token.email
+                token.role = existingUser.role ?? token.role
+            }
 
             return token
         },

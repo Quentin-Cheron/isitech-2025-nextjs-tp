@@ -1,11 +1,6 @@
 'use client'
 
-import React, {
-    useState,
-    useEffect,
-    startTransition,
-    useTransition,
-} from 'react'
+import React, { useState, useEffect, useTransition } from 'react'
 import {
     ColumnDef,
     ColumnFiltersState,
@@ -32,8 +27,6 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
     Table,
     TableBody,
@@ -44,6 +37,7 @@ import {
 } from '@/components/ui/table'
 import {
     addCourseAction,
+    deleteCourseByIdAction,
     getCourses,
     getCoursesByTeacherId,
 } from '@/actions/course'
@@ -61,6 +55,8 @@ import {
 } from '../ui/dropdown-menu'
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu'
 import Link from 'next/link'
+import { deleteCourseById } from '@/data/course'
+import { User } from '@prisma/client'
 
 type Course = {
     id: string
@@ -71,15 +67,23 @@ type Course = {
     schedule: string
 }
 
-export default function DataTable() {
+export default function TeacherTable({
+    loading,
+    data,
+    getData,
+    user,
+}: {
+    loading: boolean
+    data: Course[]
+    getData: () => void
+    user: User
+}) {
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
         {}
     )
     const [rowSelection, setRowSelection] = useState({})
-    const [data, setData] = useState<Course[]>([])
-    const [loading, setLoading] = useState(false)
     const [isPending, startTransition] = useTransition()
 
     const {
@@ -87,7 +91,7 @@ export default function DataTable() {
         handleSubmit: handleSubmitCourse,
         reset: resetCourse,
         formState: { errors: courseErrors },
-    } = useForm()
+    } = useForm<z.infer<typeof AddCourseSchema>>()
 
     const AddCourse = async (values: z.infer<typeof AddCourseSchema>) => {
         startTransition(() => {
@@ -105,17 +109,13 @@ export default function DataTable() {
         })
     }
 
-    const user = useCurrentUser()
-
-    const getData = async () => {
-        setLoading(true)
-        const res = await getCoursesByTeacherId(user?.id || '')
-        if (res.error) {
-            console.log(res.error)
+    const deleteCourse = async (id: string) => {
+        const res = await deleteCourseByIdAction(id)
+        if (res?.error) {
+            console.log(res?.error)
             return
         }
-        setData(res.courses)
-        setLoading(false)
+        getData()
     }
 
     useEffect(() => {
@@ -216,13 +216,20 @@ export default function DataTable() {
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuItem>
                                 <Link
-                                    href={`/dashboard/courses/update/${course?.id}`}
+                                    href={`/dashboard/teacher/courses/update/${course?.id}`}
+                                    className="w-full"
                                 >
                                     Update
                                 </Link>
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem>Delete</DropdownMenuItem>
+                            <DropdownMenuItem
+                                onClick={() => deleteCourse(course?.id)}
+                            >
+                                <span className="w-full cursor-pointer">
+                                    Delete
+                                </span>
+                            </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 )

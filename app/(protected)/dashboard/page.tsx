@@ -1,7 +1,14 @@
 'use client'
 
-import DataTable from '@/components/dashboard/table'
+import { useCurrentRole } from '@/hook/use-current-role'
+import { redirect } from 'next/navigation'
 
 export default function Page() {
-    return <DataTable />
+    const role = useCurrentRole()
+
+    if (role === 'TEACHER') {
+        redirect('/dashboard/teacher')
+    } else {
+        redirect('/dashboard/student')
+    }
 }

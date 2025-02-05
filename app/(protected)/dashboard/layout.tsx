@@ -17,10 +17,9 @@ import {
 import { cn } from '@/lib/utils'
 
 const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
     {
         name: 'Gestion des cours',
-        href: '/dashboard/courses',
+        href: '/dashboard',
         icon: Bars3Icon,
     },
     { name: 'Suivi des élèves', href: '/dashboard/students', icon: UsersIcon },

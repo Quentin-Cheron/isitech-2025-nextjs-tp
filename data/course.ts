@@ -1,5 +1,5 @@
 import { db } from '@/lib/db'
-import { AddCourseSchema } from '@/schemas'
+import { AddCourseSchema, UpdateCourseSchema } from '@/schemas'
 import { z } from 'zod'
 
 export async function getCoursesService() {
@@ -11,7 +11,6 @@ export async function getCoursesService() {
 }
 
 export async function getCoursesServiceByTeacherId(teacherId: string) {
-    console.log(teacherId)
     try {
         return await db.course.findMany({
             where: {
@@ -41,6 +40,37 @@ export async function addCourse(values: z.infer<typeof AddCourseSchema>) {
             data: {
                 ...values,
                 capacity: parseInt(values.capacity),
+            },
+        })
+    } catch {
+        return null
+    }
+}
+
+export const updateCourse = async (
+    values: z.infer<typeof UpdateCourseSchema>
+) => {
+    try {
+        return await db.course.update({
+            where: {
+                id: values.id,
+            },
+            data: {
+                ...values,
+                capacity: parseInt(values.capacity),
+            },
+        })
+    } catch {
+        return null
+    }
+}
+
+export async function deleteCourseById(id: string) {
+    console.log(id)
+    try {
+        return await db.course.delete({
+            where: {
+                id,
             },
         })
     } catch {

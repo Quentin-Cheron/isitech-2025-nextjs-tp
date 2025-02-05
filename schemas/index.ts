@@ -50,3 +50,30 @@ export const AddCourseSchema = z.object({
         message: 'TeacherId is required',
     }),
 })
+
+export const UpdateCourseSchema = z.object({
+    title: z.string().min(1, {
+        message: 'Title is required',
+    }),
+    description: z.string().min(1, {
+        message: 'Description is required',
+    }),
+    instrument: z.string().min(1, {
+        message: 'Instrument is required',
+    }),
+    level: z.string().min(1, {
+        message: 'Level is required',
+    }),
+    capacity: z
+        .number()
+        .min(1, {
+            message: 'Capacity is required',
+        })
+        .transform((val) => Number(val)),
+    schedule: z.string().min(1, {
+        message: 'Schedule is required',
+    }),
+    id: z.string().min(1, {
+        message: 'Id is required',
+    }),
+})
