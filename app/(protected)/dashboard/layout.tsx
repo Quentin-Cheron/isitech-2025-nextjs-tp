@@ -13,10 +13,14 @@ import {
     HomeIcon,
     UsersIcon,
     XMarkIcon,
+    ArrowLeftEndOnRectangleIcon,
 } from '@heroicons/react/24/outline'
 import { cn } from '@/lib/utils'
+import { signOut } from '@/auth'
+import { logout } from '@/actions/logout'
+import { useCurrentRole } from '@/hook/use-current-role'
 
-const navigation = [
+const navigationTeacher = [
     {
         name: 'Gestion des cours',
         href: '/dashboard',
@@ -30,9 +34,24 @@ const navigation = [
     },
 ]
 
+const navigationStudent = [
+    {
+        name: 'Cours disponibles',
+        href: '/dashboard/student',
+        icon: Bars3Icon,
+    },
+    {
+        name: 'Cours prévus',
+        href: '/dashboard/student/enrollment',
+        icon: UsersIcon,
+    },
+]
+
 export default function Layout({ children }: { children: React.ReactNode }) {
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const pathname = usePathname()
+
+    const role = useCurrentRole()
 
     return (
         <>
@@ -88,7 +107,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                                                 role="list"
                                                 className="-mx-2 space-y-1"
                                             >
-                                                {navigation.map((item) => (
+                                                {(role === 'TEACHER'
+                                                    ? navigationTeacher
+                                                    : navigationStudent
+                                                ).map((item) => (
                                                     <li key={item.name}>
                                                         <a
                                                             href={item.href}
@@ -116,6 +138,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                                                 ))}
                                             </ul>
                                         </li>
+                                        <li className="mt-auto">
+                                            <button
+                                                onClick={() => logout()}
+                                                className="w-full group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+                                            >
+                                                <ArrowLeftEndOnRectangleIcon
+                                                    aria-hidden="true"
+                                                    className="size-6 shrink-0"
+                                                />
+                                                Log out
+                                            </button>
+                                        </li>
                                     </ul>
                                 </nav>
                             </div>
@@ -141,7 +175,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                             >
                                 <li>
                                     <ul role="list" className="-mx-2 space-y-1">
-                                        {navigation.map((item) => (
+                                        {(role === 'TEACHER'
+                                            ? navigationTeacher
+                                            : navigationStudent
+                                        ).map((item) => (
                                             <li key={item.name}>
                                                 <a
                                                     href={item.href}
@@ -167,6 +204,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                                             </li>
                                         ))}
                                     </ul>
+                                </li>
+                                <li className="mt-auto">
+                                    <button
+                                        onClick={() => logout()}
+                                        className="w-full group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+                                    >
+                                        <ArrowLeftEndOnRectangleIcon
+                                            aria-hidden="true"
+                                            className="size-6 shrink-0"
+                                        />
+                                        Log out
+                                    </button>
                                 </li>
                             </ul>
                         </nav>

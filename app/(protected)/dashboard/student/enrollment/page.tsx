@@ -13,20 +13,9 @@ import {
     getSortedRowModel,
     useReactTable,
 } from '@tanstack/react-table'
-import { ArrowUpDown, Loader2, MoreHorizontal } from 'lucide-react'
-import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog'
 import {
     Table,
     TableBody,
@@ -35,9 +24,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
-import { addCourseAction } from '@/actions/course'
-import { AddCourseSchema } from '@/schemas'
-import FormInput from '../custom/form-input'
 import { z } from 'zod'
 import {
     DropdownMenu,
@@ -45,11 +31,13 @@ import {
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
-} from '../ui/dropdown-menu'
+} from '@/components/ui/dropdown-menu'
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu'
-import { User } from '@prisma/client'
 import { addEnrollmentAction } from '@/data/enrollment'
 import { notifyError, notifySuccess } from '@/lib/notify'
+import { useCurrentUser } from '@/hook/use-current-user'
+import { ArrowUpDown, MoreHorizontal } from 'lucide-react'
+import { getEnrollmentByStudentId } from '@/actions/enrollment'
 
 type Course = {
     id: string
@@ -60,17 +48,7 @@ type Course = {
     schedule: string
 }
 
-export default function StudentTable({
-    loading,
-    data,
-    getData,
-    user,
-}: {
-    loading: boolean
-    data: Course[]
-    getData: () => void
-    user: User
-}) {
+export default function StudentTable() {
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
@@ -79,28 +57,19 @@ export default function StudentTable({
     const [rowSelection, setRowSelection] = useState({})
     const [isPending, startTransition] = useTransition()
 
-    const {
-        register: registerCourse,
-        handleSubmit: handleSubmitCourse,
-        reset: resetCourse,
-        formState: { errors: courseErrors },
-    } = useForm<z.infer<typeof AddCourseSchema>>()
+    const user = useCurrentUser()
+
+    const [data, setData] = useState<Course[]>([])
+
+    const getData = async () => {
+        const enrollments = await getEnrollmentByStudentId(user.id)
+        console.log(enrollments)
+        setData(enrollments)
+    }
 
     useEffect(() => {
         getData()
     }, [])
-
-    const addEnrollment = async (courseId: string, studentId: string) => {
-        startTransition(() => {
-            addEnrollmentAction(courseId, studentId).then((res) => {
-                if (res.success) {
-                    notifySuccess(res.success)
-                } else {
-                    notifyError(res.error)
-                }
-            })
-        })
-    }
 
     const columns: ColumnDef<Course>[] = [
         {
@@ -128,54 +97,21 @@ export default function StudentTable({
             enableHiding: false,
         },
         {
-            accessorKey: 'title',
-            header: 'Title',
+            accessorKey: 'status',
+            header: 'Status',
             cell: ({ row }) => (
-                <div className="capitalize">{row.getValue('title')}</div>
+                <div className="capitalize">{row.getValue('status')}</div>
             ),
         },
         {
-            accessorKey: 'description',
-            header: ({ column }) => {
-                return (
-                    <Button
-                        variant="ghost"
-                        onClick={() =>
-                            column.toggleSorting(column.getIsSorted() === 'asc')
-                        }
-                    >
-                        Description
-                        <ArrowUpDown />
-                    </Button>
-                )
-            },
+            accessorKey: 'enrollmentDate',
+            header: 'Status',
             cell: ({ row }) => (
-                <div className="lowercase">{row.getValue('description')}</div>
-            ),
-        },
-        {
-            accessorKey: 'instrument',
-            header: () => <div className="text-right">Instrument</div>,
-            cell: ({ row }) => {
-                return (
-                    <div className="text-right font-medium">
-                        {row.getValue('instrument')}
-                    </div>
-                )
-            },
-        },
-        {
-            accessorKey: 'level',
-            header: 'Level',
-            cell: ({ row }) => (
-                <div className="capitalize">{row.getValue('level')}</div>
-            ),
-        },
-        {
-            accessorKey: 'schedule',
-            header: 'Schedule',
-            cell: ({ row }) => (
-                <div className="capitalize">{row.getValue('schedule')}</div>
+                <div className="capitalize">
+                    {new Date(
+                        row.getValue('enrollmentDate')
+                    ).toLocaleDateString()}
+                </div>
             ),
         },
         {
@@ -194,11 +130,7 @@ export default function StudentTable({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem
-                                onClick={() =>
-                                    addEnrollment(course.id, user.id)
-                                }
-                            >
+                            <DropdownMenuItem>
                                 <span className="w-full cursor-pointer">
                                     S'inscrire au cour
                                 </span>
@@ -274,7 +206,7 @@ export default function StudentTable({
                             ))
                         ) : (
                             <TableRow>
-                                {!loading ? (
+                                {!isPending ? (
                                     <TableCell
                                         colSpan={columns.length}
                                         className="h-24 text-center"

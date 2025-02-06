@@ -339,7 +339,7 @@ export default function TeacherTable({
                         <DialogFooter>
                             <Button type="submit">
                                 {isPending ? (
-                                    <div>
+                                    <div className="flex items-center gap-2">
                                         <Loader2 className="animate-spin" />
                                         <span>Saving...</span>
                                     </div>
