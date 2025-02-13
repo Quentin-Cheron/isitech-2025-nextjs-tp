@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useTransition } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
     ColumnDef,
     ColumnFiltersState,
@@ -13,20 +13,9 @@ import {
     getSortedRowModel,
     useReactTable,
 } from '@tanstack/react-table'
-import { ArrowUpDown, Loader2, MoreHorizontal } from 'lucide-react'
-import { useForm } from 'react-hook-form'
-
+import { ArrowUpDown, MoreHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog'
 import {
     Table,
     TableBody,
@@ -35,44 +24,32 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
-import { addCourseAction } from '@/actions/course'
-import { AddCourseSchema } from '@/schemas'
-import FormInput from '../custom/form-input'
-import { z } from 'zod'
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
-} from '../ui/dropdown-menu'
+} from '@/components/ui/dropdown-menu'
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu'
-import {
-    addEnrollmentAction,
-    deleteEnrollmentAction,
-} from '@/actions/enrollment'
-import { notifyError, notifySuccess } from '@/lib/notify'
-import { getEnrollmentByCourseAndStudent } from '@/actions/enrollment'
+import Link from 'next/link'
+import { getAllStudents, deleteStudentById } from '@/actions/student'
 
-type Course = {
+type Student = {
     id: string
-    title: string
-    description: string
-    instrument: string
-    level: string
-    schedule: string
+    name: string
+    email: string
+    course: string
+    progress: string
+    evaluation: string
 }
 
 export default function StudentTable({
-    loading,
+    loading: initialLoading,
     data,
-    getData,
-    user,
 }: {
     loading: boolean
-    data: Course[]
-    getData: () => void
-    user: { id: string }
+    data: Student[]
 }) {
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -80,56 +57,35 @@ export default function StudentTable({
         {}
     )
     const [rowSelection, setRowSelection] = useState({})
-    const [isPending, startTransition] = useTransition()
+    const [students, setStudents] = useState<Student[]>(data)
+    const [loading, setLoading] = useState(initialLoading)
 
-    const {
-        register: registerCourse,
-        handleSubmit: handleSubmitCourse,
-        reset: resetCourse,
-        formState: { errors: courseErrors },
-    } = useForm<z.infer<typeof AddCourseSchema>>()
+    const fetchStudents = async () => {
+        setLoading(true)
+        const { students, error } = await getAllStudents()
+        if (error) {
+            console.error('Error fetching students:', error)
+            setStudents([])
+        } else {
+            setStudents(students || [])
+        }
+        setLoading(false)
+    }
+
+    const handleDeleteStudent = async (id: string) => {
+        const { error } = await deleteStudentById(id)
+        if (error) {
+            console.error('Error deleting student:', error)
+        } else {
+            fetchStudents()
+        }
+    }
 
     useEffect(() => {
-        getData()
+        fetchStudents()
     }, [])
 
-    const addEnrollment = async (courseId: string, studentId: string) => {
-        startTransition(() => {
-            addEnrollmentAction(courseId, studentId).then((res) => {
-                if (res.success) {
-                    notifySuccess(res.message as string)
-                    getData() // Refresh data after successful enrollment
-                } else {
-                    notifyError(res.error as string)
-                }
-            })
-        })
-    }
-
-    const deleteEnrollment = async (courseId: string, studentId: string) => {
-        const enrollment = await getEnrollmentByCourseAndStudent(
-            courseId,
-            studentId
-        )
-
-        if (!enrollment) {
-            notifyError('Enrollment not found')
-            return
-        }
-
-        startTransition(() => {
-            deleteEnrollmentAction(enrollment.id).then((res) => {
-                if (res.success) {
-                    notifySuccess(res.message as string)
-                    getData() // Refresh data after successful unenrollment
-                } else {
-                    notifyError(res.error as string)
-                }
-            })
-        })
-    }
-
-    const columns: ColumnDef<Course>[] = [
+    const columns: ColumnDef<Student>[] = [
         {
             id: 'select',
             header: ({ table }) => (
@@ -155,61 +111,45 @@ export default function StudentTable({
             enableHiding: false,
         },
         {
-            accessorKey: 'title',
-            header: 'Title',
+            accessorKey: 'name',
+            header: 'Name',
             cell: ({ row }) => (
-                <div className="capitalize">{row.getValue('title')}</div>
+                <div className="capitalize">{row.getValue('name')}</div>
             ),
         },
         {
-            accessorKey: 'description',
-            header: ({ column }) => {
-                return (
-                    <Button
-                        variant="ghost"
-                        onClick={() =>
-                            column.toggleSorting(column.getIsSorted() === 'asc')
-                        }
-                    >
-                        Description
-                        <ArrowUpDown />
-                    </Button>
-                )
-            },
+            accessorKey: 'email',
+            header: 'Email',
             cell: ({ row }) => (
-                <div className="lowercase">{row.getValue('description')}</div>
+                <div className="lowercase">{row.getValue('email')}</div>
             ),
         },
         {
-            accessorKey: 'instrument',
-            header: () => <div className="text-right">Instrument</div>,
-            cell: ({ row }) => {
-                return (
-                    <div className="text-right font-medium">
-                        {row.getValue('instrument')}
-                    </div>
-                )
-            },
-        },
-        {
-            accessorKey: 'level',
-            header: 'Level',
+            accessorKey: 'course',
+            header: 'Course',
             cell: ({ row }) => (
-                <div className="capitalize">{row.getValue('level')}</div>
+                <div className="capitalize">{row.getValue('course')}</div>
             ),
         },
         {
-            accessorKey: 'schedule',
-            header: 'Schedule',
+            accessorKey: 'progress',
+            header: 'Progress',
             cell: ({ row }) => (
-                <div className="capitalize">{row.getValue('schedule')}</div>
+                <div className="capitalize">{row.getValue('progress')}</div>
+            ),
+        },
+        {
+            accessorKey: 'evaluation',
+            header: 'Evaluation',
+            cell: ({ row }) => (
+                <div className="capitalize">{row.getValue('evaluation')}</div>
             ),
         },
         {
             id: 'actions',
             enableHiding: false,
             cell: ({ row }) => {
-                const course = row.original
+                const student = row.original
 
                 return (
                     <DropdownMenu>
@@ -221,25 +161,22 @@ export default function StudentTable({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem
-                                onClick={() =>
-                                    addEnrollment(course.id, user.id)
-                                }
-                            >
-                                <span className="w-full cursor-pointer">
-                                    S'inscrire au cours
-                                </span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onClick={() =>
-                                    deleteEnrollment(course.id, user.id)
-                                }
-                            >
-                                <span className="w-full cursor-pointer">
-                                    Se désinscrire
-                                </span>
+                            <DropdownMenuItem>
+                                <Link
+                                    href={`/dashboard/teacher/students/update/${student?.id}`}
+                                    className="w-full"
+                                >
+                                    Update
+                                </Link>
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                                onClick={() => handleDeleteStudent(student?.id)}
+                            >
+                                <span className="w-full cursor-pointer">
+                                    Delete
+                                </span>
+                            </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 )
@@ -248,7 +185,7 @@ export default function StudentTable({
     ]
 
     const table = useReactTable({
-        data,
+        data: students || [],
         columns,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -273,19 +210,17 @@ export default function StudentTable({
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => {
-                                    return (
-                                        <TableHead key={header.id}>
-                                            {header.isPlaceholder
-                                                ? null
-                                                : flexRender(
-                                                      header.column.columnDef
-                                                          .header,
-                                                      header.getContext()
-                                                  )}
-                                        </TableHead>
-                                    )
-                                })}
+                                {headerGroup.headers.map((header) => (
+                                    <TableHead key={header.id}>
+                                        {header.isPlaceholder
+                                            ? null
+                                            : flexRender(
+                                                  header.column.columnDef
+                                                      .header,
+                                                  header.getContext()
+                                              )}
+                                    </TableHead>
+                                ))}
                             </TableRow>
                         ))}
                     </TableHeader>
@@ -310,21 +245,12 @@ export default function StudentTable({
                             ))
                         ) : (
                             <TableRow>
-                                {!loading ? (
-                                    <TableCell
-                                        colSpan={columns.length}
-                                        className="h-24 text-center"
-                                    >
-                                        No results.
-                                    </TableCell>
-                                ) : (
-                                    <TableCell
-                                        colSpan={columns.length}
-                                        className="h-24 text-center"
-                                    >
-                                        Loading...
-                                    </TableCell>
-                                )}
+                                <TableCell
+                                    colSpan={columns.length}
+                                    className="h-24 text-center"
+                                >
+                                    No results.
+                                </TableCell>
                             </TableRow>
                         )}
                     </TableBody>

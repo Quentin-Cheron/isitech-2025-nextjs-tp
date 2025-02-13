@@ -7,13 +7,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id       String   @id @default(uuid())
-  email    String   @unique
-  password String
-  name     String
-  role     String
-  courses  Course[] @relation("TeacherCourses")
+
+model Student {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  courses   Course[] @relation("StudentCourses")
+  enrollments Enrollment[]
+  progresses Progress[]
+  createdAt DateTime @default(now())
+}
+
+model Teacher {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  courses   Course[] @relation("TeacherCourses")
   createdAt DateTime @default(now())
 }
 
@@ -23,27 +34,33 @@ model Course {
   description String
   instrument  String
   teacherId   String
-  teacher     User     @relation("TeacherCourses", fields: [teacherId], references: [id])
+  teacher     Teacher @relation("TeacherCourses", fields: [teacherId], references: [id])
   level       String
   schedule    String
   capacity    Int
+  enrollments Enrollment[]
+  progresses  Progress[]
+  students    Student[] @relation("StudentCourses") // Ajout de la relation inverse
 }
 
-
 model Enrollment {
-  id String @id @default(uuid())
-  studentId String
-  courseId String
-  enrollmentDate DateTime
-  status String
+  id            String   @id @default(uuid())
+  studentId     String
+  student       Student  @relation(fields: [studentId], references: [id])
+  courseId      String
+  course        Course   @relation(fields: [courseId], references: [id])
+  enrollmentDate DateTime @default(now())
+  status        String
 }
 
 model Progress {
-  id String @id @default(uuid())
-  studentId String
-  courseId String
-  date DateTime
-  evaluation String
-  comments String
+  id          String   @id @default(uuid())
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id])
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id])
+  date        DateTime @default(now())
+  evaluation  String
+  comments    String
 }
 

@@ -13,18 +13,10 @@ export const LoginSchema = z.object({
 })
 
 export const RegisterSchema = z.object({
-    email: z.string().email({
-        message: 'Email is required',
-    }),
-    password: z.string().min(6, {
-        message: 'Minimum 6 characters required',
-    }),
-    name: z.string().min(1, {
-        message: 'Name is required',
-    }),
-    role: z.enum(['STUDENT', 'TEACHER'], {
-        message: 'Role must be STUDENT or TEACHER',
-    }),
+    email: z.string().email(),
+    password: z.string().min(6, 'Password must be at least 6 characters long'),
+    name: z.string().min(1, 'Name is required'),
+    role: z.enum(['ADMIN', 'TEACHER', 'STUDENT']),
 })
 
 export const AddCourseSchema = z.object({
@@ -72,8 +64,5 @@ export const UpdateCourseSchema = z.object({
         .transform((val) => Number(val)),
     schedule: z.string().min(1, {
         message: 'Schedule is required',
-    }),
-    id: z.string().min(1, {
-        message: 'Id is required',
     }),
 })

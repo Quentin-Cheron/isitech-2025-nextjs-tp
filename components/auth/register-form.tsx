@@ -50,15 +50,23 @@ export function RegisterForm() {
         setError('')
         setSuccess('')
 
-        startTransition(() => {
-            register({ ...values, role: teacherParam ? 'TEACHER' : 'STUDENT' })
-                .then((data) => {
-                    setError(data.error)
-                    setSuccess(data.success)
+        startTransition(async () => {
+            try {
+                const data = await register({
+                    ...values,
+                    role: teacherParam ? 'TEACHER' : 'STUDENT',
                 })
-                .catch(() => setError('Something went wrong'))
+                if (data.error) {
+                    setError(data.error)
+                } else {
+                    setSuccess(data.success)
+                }
+            } catch (err) {
+                setError('Something went wrong')
+            }
         })
     }
+
     return (
         <CardWrapper
             headerLabel="Create an account"

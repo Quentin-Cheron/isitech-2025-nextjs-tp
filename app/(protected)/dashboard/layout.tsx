@@ -16,7 +16,6 @@ import {
     ArrowLeftEndOnRectangleIcon,
 } from '@heroicons/react/24/outline'
 import { cn } from '@/lib/utils'
-import { signOut } from '@/auth'
 import { logout } from '@/actions/logout'
 import { useCurrentRole } from '@/hook/use-current-role'
 
@@ -26,7 +25,11 @@ const navigationTeacher = [
         href: '/dashboard',
         icon: Bars3Icon,
     },
-    { name: 'Suivi des élèves', href: '/dashboard/students', icon: UsersIcon },
+    {
+        name: 'Suivi des élèves',
+        href: '/dashboard/teacher/suivi-students',
+        icon: UsersIcon,
+    },
     {
         name: 'Gestion des évaluations',
         href: '/dashboard/evaluations',
