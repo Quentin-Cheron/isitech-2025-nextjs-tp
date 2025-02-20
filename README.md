@@ -24,7 +24,7 @@ Les utilisateurs peuvent s'inscrire en tant qu'étudiants ou enseignants. L'appl
 -   **Connexion** :
     -   Les utilisateurs saisissent leur email et mot de passe.
     -   Les informations sont validées et comparées avec celles stockées dans la base de données.
-    -   Si les informations sont correctes, l'utilisateur est connecté et redirigé vers son tableau de bord.
+    -   Si les informations sont correctes, l'utilisateur est connecté.
 
 ### 2. Gestion des Cours
 
@@ -88,10 +88,6 @@ Des tableaux de bord distincts sont fournis pour les enseignants et les étudian
 
 ### 5. Notifications
 
-#### Description
-
-L'application envoie des notifications pour informer les utilisateurs des mises à jour ou des erreurs.
-
 #### Fonctionnement
 
 -   Les notifications sont affichées en cas d'erreurs lors de l'inscription, de la connexion, de la création de cours ou d'autres actions.
@@ -107,12 +103,7 @@ L'application envoie des notifications pour informer les utilisateurs des mises 
 
 -   **Backend** :
 
-    -   **Node.js** : Environnement d'exécution pour le serveur.
     -   **Prisma** : ORM pour interagir avec la base de données.
 
 -   **Base de Données** :
     -   **PostgreSQL** : Système de gestion de base de données relationnelle utilisé pour stocker les données des utilisateurs, des cours, des inscriptions et des évaluations.
-
-## Conclusion
-
-Cette application de gestion d'apprentissage offre une plateforme intuitive pour les enseignants et les étudiants, facilitant la gestion des cours et le suivi des progrès. Grâce à l'utilisation de technologies modernes et d'une architecture bien pensée, elle fournit une expérience utilisateur fluide et efficace. Les fonctionnalités sont conçues pour répondre aux besoins des utilisateurs tout en garantissant la sécurité et la fiabilité des données.

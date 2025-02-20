@@ -45,12 +45,11 @@ export default function Page() {
     }, [])
 
     return (
-        <>
-            {isPending ? (
-                <Skeleton className="h-[136px] w-full rounded-xl" />
-            ) : (
-                <TeacherTable user={user} getData={getData} data={data} />
-            )}
-        </>
+        <TeacherTable
+            user={user}
+            getData={getData}
+            data={data}
+            loading={isPending}
+        />
     )
 }

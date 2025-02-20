@@ -56,6 +56,7 @@ import {
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu'
 import Link from 'next/link'
 import { User } from '@prisma/client'
+import { Skeleton } from '../ui/skeleton'
 
 type Course = {
     id: string
@@ -70,10 +71,12 @@ export default function TeacherTable({
     data,
     getData,
     user,
+    loading,
 }: {
     data: Course[]
     getData: () => void
     user: User
+    loading: boolean
 }) {
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -387,12 +390,18 @@ export default function TeacherTable({
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell
-                                    colSpan={columns.length}
-                                    className="h-24 text-center"
-                                >
-                                    No results.
-                                </TableCell>
+                                {loading ? (
+                                    <TableCell colSpan={columns.length}>
+                                        <Skeleton className="h-12 w-full rounded-xl" />
+                                    </TableCell>
+                                ) : (
+                                    <TableCell
+                                        colSpan={columns.length}
+                                        className="h-24 text-center"
+                                    >
+                                        No results.'
+                                    </TableCell>
+                                )}
                             </TableRow>
                         )}
                     </TableBody>

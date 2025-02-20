@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useTransition } from 'react'
 import {
     ColumnDef,
     ColumnFiltersState,
@@ -34,6 +34,7 @@ import {
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu'
 import Link from 'next/link'
 import { getAllStudents, deleteStudentById } from '@/actions/student'
+import { Skeleton } from '@/components/ui/skeleton'
 
 type Student = {
     id: string
@@ -58,18 +59,18 @@ export default function StudentTable({
     )
     const [rowSelection, setRowSelection] = useState({})
     const [students, setStudents] = useState<Student[]>(data)
-    const [loading, setLoading] = useState(initialLoading)
+    const [isPending, startTransition] = useTransition()
 
     const fetchStudents = async () => {
-        setLoading(true)
-        const { students, error } = await getAllStudents()
-        if (error) {
-            console.error('Error fetching students:', error)
-            setStudents([])
-        } else {
-            setStudents(students || [])
-        }
-        setLoading(false)
+        startTransition(() => {
+            getAllStudents().then((res) => {
+                if (res.error) {
+                    console.error('Error fetching students:', res.error)
+                    return
+                }
+                setStudents(res.students || [])
+            })
+        })
     }
 
     const handleDeleteStudent = async (id: string) => {
@@ -237,12 +238,18 @@ export default function StudentTable({
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell
-                                    colSpan={columns.length}
-                                    className="h-24 text-center"
-                                >
-                                    {loading ? 'Loading...' : 'No results.'}
-                                </TableCell>
+                                {isPending ? (
+                                    <TableCell colSpan={columns.length}>
+                                        <Skeleton className="h-12 w-full rounded-xl" />
+                                    </TableCell>
+                                ) : (
+                                    <TableCell
+                                        colSpan={columns.length}
+                                        className="h-24 text-center"
+                                    >
+                                        No results.'
+                                    </TableCell>
+                                )}
                             </TableRow>
                         )}
                     </TableBody>

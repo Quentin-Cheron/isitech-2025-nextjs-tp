@@ -24,25 +24,15 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu'
-import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu'
-import { addEnrollmentAction } from '@/data/enrollment'
-import { notifyError, notifySuccess } from '@/lib/notify'
+
 import { useCurrentUser } from '@/hook/use-current-user'
-import { MoreHorizontal } from 'lucide-react'
 import { getEnrollmentByStudentId } from '@/actions/enrollment'
 
 type EnrollmentWithCourse = {
     id: string
     studentId: string
     courseId: string
-    enrollmentDate: string
+    enrollmentDate: Date
     status: string
     course: {
         id: string
@@ -138,9 +128,7 @@ export default function StudentTable() {
             header: 'Enrollment Date',
             cell: ({ row }) => (
                 <div className="capitalize">
-                    {new Date(
-                        row.getValue('enrollmentDate')
-                    ).toLocaleDateString()}
+                    {row.getValue('enrollmentDate').toLocaleDateString()}
                 </div>
             ),
         },

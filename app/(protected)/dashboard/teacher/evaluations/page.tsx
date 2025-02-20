@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useTransition } from 'react'
 import {
     ColumnDef,
     ColumnFiltersState,
@@ -39,6 +39,7 @@ import {
 import { useCurrentUser } from '@/hook/use-current-user'
 import { getStudentsByTeacherId } from '@/actions/student'
 import { notifyError, notifySuccess } from '@/lib/notify'
+import { Skeleton } from '@/components/ui/skeleton'
 
 type Student = {
     id: string
@@ -60,7 +61,7 @@ export default function StudentEvaluationTable() {
     )
     const [rowSelection, setRowSelection] = useState({})
     const [students, setStudents] = useState<Student[]>([])
-    const [loading, setLoading] = useState(true)
+    const [isPending, startTransition] = useTransition()
     const [evaluations, setEvaluations] = useState<{
         [key: string]: Evaluation
     }>({})
@@ -68,18 +69,15 @@ export default function StudentEvaluationTable() {
     const user = useCurrentUser()
 
     const fetchStudents = async () => {
-        setLoading(true)
-        const { students, error } = await getStudentsByTeacherId(
-            user?.id as string
-        )
-        if (error) {
-            console.error('Error fetching students:', error)
-            setStudents([])
-        } else {
-            setStudents(students || [])
-            await fetchEvaluations(students || [])
-        }
-        setLoading(false)
+        startTransition(() => {
+            getStudentsByTeacherId(user?.id as string).then((res) => {
+                if (res.error) {
+                    return
+                }
+                setStudents(res.students || [])
+                fetchEvaluations(res.students || [])
+            })
+        })
     }
 
     const fetchEvaluations = async (students: Student[]) => {
@@ -293,12 +291,18 @@ export default function StudentEvaluationTable() {
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell
-                                    colSpan={columns.length}
-                                    className="h-24 text-center"
-                                >
-                                    {loading ? 'Loading...' : 'No results.'}
-                                </TableCell>
+                                {isPending ? (
+                                    <TableCell colSpan={columns.length}>
+                                        <Skeleton className="h-12 w-full rounded-xl" />
+                                    </TableCell>
+                                ) : (
+                                    <TableCell
+                                        colSpan={columns.length}
+                                        className="h-24 text-center"
+                                    >
+                                        No results.'
+                                    </TableCell>
+                                )}
                             </TableRow>
                         )}
                     </TableBody>

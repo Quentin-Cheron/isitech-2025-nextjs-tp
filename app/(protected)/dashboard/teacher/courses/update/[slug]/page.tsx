@@ -67,7 +67,7 @@ export default function Page() {
 
     return (
         <form
-            onSubmit={handleSubmit(onSubmit, (errors) => console.log(errors))}
+            onSubmit={handleSubmit(onSubmit)}
             className="max-w-2xl mx-auto p-6 bg-white shadow-md rounded-lg"
         >
             <div className="space-y-8">

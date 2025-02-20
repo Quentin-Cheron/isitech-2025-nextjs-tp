@@ -39,7 +39,10 @@ export async function addCourse(values: z.infer<typeof AddCourseSchema>) {
         return await db.course.create({
             data: {
                 ...values,
-                capacity: parseInt(values.capacity),
+                capacity:
+                    typeof values.capacity === 'string'
+                        ? parseInt(values.capacity)
+                        : values.capacity,
             },
         })
     } catch {
@@ -57,7 +60,10 @@ export const updateCourse = async (
             },
             data: {
                 ...values,
-                capacity: parseInt(values.capacity),
+                capacity:
+                    typeof values.capacity === 'string'
+                        ? parseInt(values.capacity)
+                        : values.capacity,
             },
         })
     } catch {
