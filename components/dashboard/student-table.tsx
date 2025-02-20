@@ -64,12 +64,10 @@ type Course = {
 }
 
 export default function StudentTable({
-    loading,
     data,
     getData,
     user,
 }: {
-    loading: boolean
     data: Course[]
     getData: () => void
     user: { id: string }
@@ -88,10 +86,6 @@ export default function StudentTable({
         reset: resetCourse,
         formState: { errors: courseErrors },
     } = useForm<z.infer<typeof AddCourseSchema>>()
-
-    useEffect(() => {
-        getData()
-    }, [])
 
     const addEnrollment = async (courseId: string, studentId: string) => {
         startTransition(() => {
@@ -310,21 +304,12 @@ export default function StudentTable({
                             ))
                         ) : (
                             <TableRow>
-                                {!loading ? (
-                                    <TableCell
-                                        colSpan={columns.length}
-                                        className="h-24 text-center"
-                                    >
-                                        No results.
-                                    </TableCell>
-                                ) : (
-                                    <TableCell
-                                        colSpan={columns.length}
-                                        className="h-24 text-center"
-                                    >
-                                        Loading...
-                                    </TableCell>
-                                )}
+                                <TableCell
+                                    colSpan={columns.length}
+                                    className="h-24 text-center"
+                                >
+                                    No results.
+                                </TableCell>
                             </TableRow>
                         )}
                     </TableBody>

@@ -34,7 +34,6 @@ export async function login(values: z.infer<typeof LoginSchema>) {
 
         return { success: 'Logged in successfully!' }
     } catch (error) {
-        console.error('Login error:', error)
         if (error instanceof AuthError) {
             switch (error.type) {
                 case 'CredentialsSignin':

@@ -55,7 +55,6 @@ import {
 } from '../ui/dropdown-menu'
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu'
 import Link from 'next/link'
-import { deleteCourseById } from '@/data/course'
 import { User } from '@prisma/client'
 
 type Course = {
@@ -68,12 +67,10 @@ type Course = {
 }
 
 export default function TeacherTable({
-    loading,
     data,
     getData,
     user,
 }: {
-    loading: boolean
     data: Course[]
     getData: () => void
     user: User
@@ -117,10 +114,6 @@ export default function TeacherTable({
         }
         getData()
     }
-
-    useEffect(() => {
-        getData()
-    }, [])
 
     const columns: ColumnDef<Course>[] = [
         {
@@ -394,21 +387,12 @@ export default function TeacherTable({
                             ))
                         ) : (
                             <TableRow>
-                                {!loading ? (
-                                    <TableCell
-                                        colSpan={columns.length}
-                                        className="h-24 text-center"
-                                    >
-                                        No results.
-                                    </TableCell>
-                                ) : (
-                                    <TableCell
-                                        colSpan={columns.length}
-                                        className="h-24 text-center"
-                                    >
-                                        Loading...
-                                    </TableCell>
-                                )}
+                                <TableCell
+                                    colSpan={columns.length}
+                                    className="h-24 text-center"
+                                >
+                                    No results.
+                                </TableCell>
                             </TableRow>
                         )}
                     </TableBody>

@@ -2,14 +2,15 @@
 
 import { getCourses } from '@/actions/course'
 import StudentTable from '@/components/dashboard/student-table'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useCurrentRole } from '@/hook/use-current-role'
 import { useCurrentUser } from '@/hook/use-current-user'
 import { Course } from '@prisma/client'
-import { useState } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 
 export default function Page() {
-    const [loading, setLoading] = useState(false)
     const [data, setData] = useState<Course[]>([])
+    const [isPending, startTransition] = useTransition()
 
     const user = useCurrentUser()
     const role = useCurrentRole()
@@ -19,22 +20,29 @@ export default function Page() {
     }
 
     const getData = async () => {
-        setLoading(true)
-        const res = await getCourses()
-        if (res.error) {
-            console.log(res.error)
-            return
-        }
-        setData(res.courses)
-        setLoading(false)
+        startTransition(() => {
+            getCourses().then((res) => {
+                if (res.error) {
+                    return
+                }
+                setData(res.courses || [])
+            })
+        })
     }
 
+    useEffect(() => {
+        if (user) {
+            getData()
+        }
+    }, [])
+
     return (
-        <StudentTable
-            loading={loading}
-            user={user}
-            getData={getData}
-            data={data}
-        />
+        <>
+            {isPending ? (
+                <Skeleton className="h-[136px] w-full rounded-xl" />
+            ) : (
+                <StudentTable user={user} getData={getData} data={data} />
+            )}
+        </>
     )
 }

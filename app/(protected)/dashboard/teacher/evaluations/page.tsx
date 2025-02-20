@@ -13,7 +13,6 @@ import {
     getSortedRowModel,
     useReactTable,
 } from '@tanstack/react-table'
-import { ArrowUpDown, MoreHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -32,58 +31,101 @@ import {
     DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu'
-import Link from 'next/link'
-import { getAllStudents, deleteStudentById } from '@/actions/student'
+import { MoreHorizontal } from 'lucide-react'
+import {
+    addEvaluation,
+    getEvaluationsByStudentAndCourse,
+} from '@/actions/evaluation'
+import { useCurrentUser } from '@/hook/use-current-user'
+import { getStudentsByTeacherId } from '@/actions/student'
+import { notifyError, notifySuccess } from '@/lib/notify'
 
 type Student = {
     id: string
     name: string
     email: string
-    course: string
-    progress: string
-    evaluation: string
+    courses: { id: string; title: string }[]
 }
 
-export default function StudentTable({
-    loading: initialLoading,
-    data,
-}: {
-    loading: boolean
-    data: Student[]
-}) {
+type Evaluation = {
+    evaluation: string
+    comments: string
+}
+
+export default function StudentEvaluationTable() {
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
         {}
     )
     const [rowSelection, setRowSelection] = useState({})
-    const [students, setStudents] = useState<Student[]>(data)
-    const [loading, setLoading] = useState(initialLoading)
+    const [students, setStudents] = useState<Student[]>([])
+    const [loading, setLoading] = useState(true)
+    const [evaluations, setEvaluations] = useState<{
+        [key: string]: Evaluation
+    }>({})
+
+    const user = useCurrentUser()
 
     const fetchStudents = async () => {
         setLoading(true)
-        const { students, error } = await getAllStudents()
+        const { students, error } = await getStudentsByTeacherId(
+            user?.id as string
+        )
         if (error) {
             console.error('Error fetching students:', error)
             setStudents([])
         } else {
             setStudents(students || [])
+            await fetchEvaluations(students || [])
         }
         setLoading(false)
     }
 
-    const handleDeleteStudent = async (id: string) => {
-        const { error } = await deleteStudentById(id)
-        if (error) {
-            console.error('Error deleting student:', error)
-        } else {
-            fetchStudents()
+    const fetchEvaluations = async (students: Student[]) => {
+        const evalMap: { [key: string]: Evaluation } = {}
+        for (const student of students) {
+            for (const course of student.courses) {
+                const { evaluation, error } =
+                    await getEvaluationsByStudentAndCourse(
+                        student.id,
+                        course.id
+                    )
+                if (error) {
+                    console.error('Error fetching evaluation:', error)
+                } else {
+                    evalMap[`${student.id}-${course.id}`] = evaluation || {
+                        evaluation: '',
+                        comments: '',
+                    }
+                }
+            }
         }
+        setEvaluations(evalMap)
     }
 
     useEffect(() => {
         fetchStudents()
-    }, [])
+    }, [user?.id])
+
+    const handleAddEvaluation = async (studentId: string, courseId: string) => {
+        const evaluation = prompt('Enter evaluation:')
+        const comments = prompt('Enter comments:')
+        if (evaluation && comments) {
+            const { error, success, message } = await addEvaluation(
+                studentId,
+                courseId,
+                evaluation,
+                comments
+            )
+            if (!success && error) {
+                notifyError(error as string)
+            } else {
+                notifySuccess(message as string)
+                fetchEvaluations(students)
+            }
+        }
+    }
 
     const columns: ColumnDef<Student>[] = [
         {
@@ -113,36 +155,43 @@ export default function StudentTable({
         {
             accessorKey: 'name',
             header: 'Name',
-            cell: ({ row }) => (
-                <div className="capitalize">{row.getValue('name')}</div>
-            ),
+            cell: ({ row }) => <div>{row.getValue('name')}</div>,
         },
         {
             accessorKey: 'email',
             header: 'Email',
-            cell: ({ row }) => (
-                <div className="lowercase">{row.getValue('email')}</div>
-            ),
+            cell: ({ row }) => <div>{row.getValue('email')}</div>,
         },
         {
-            accessorKey: 'course',
-            header: 'Course',
+            accessorKey: 'courses',
+            header: 'Courses',
             cell: ({ row }) => (
-                <div className="capitalize">{row.getValue('course')}</div>
-            ),
-        },
-        {
-            accessorKey: 'progress',
-            header: 'Progress',
-            cell: ({ row }) => (
-                <div className="capitalize">{row.getValue('progress')}</div>
-            ),
-        },
-        {
-            accessorKey: 'evaluation',
-            header: 'Evaluation',
-            cell: ({ row }) => (
-                <div className="capitalize">{row.getValue('evaluation')}</div>
+                <div>
+                    {row.original.courses.map((course) => (
+                        <div key={course.id}>
+                            {course.title}
+                            {evaluations[`${row.original.id}-${course.id}`] ? (
+                                <div>
+                                    Evaluation:{' '}
+                                    {
+                                        evaluations[
+                                            `${row.original.id}-${course.id}`
+                                        ].evaluation
+                                    }
+                                    <br />
+                                    Comments:{' '}
+                                    {
+                                        evaluations[
+                                            `${row.original.id}-${course.id}`
+                                        ].comments
+                                    }
+                                </div>
+                            ) : (
+                                <div>No evaluation available</div>
+                            )}
+                        </div>
+                    ))}
+                </div>
             ),
         },
         {
@@ -161,14 +210,21 @@ export default function StudentTable({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                                onClick={() => handleDeleteStudent(student?.id)}
-                            >
-                                <span className="w-full cursor-pointer">
-                                    Delete
-                                </span>
-                            </DropdownMenuItem>
+                            {student.courses.map((course) => (
+                                <div key={course.id}>
+                                    <DropdownMenuItem
+                                        onClick={() =>
+                                            handleAddEvaluation(
+                                                student.id,
+                                                course.id
+                                            )
+                                        }
+                                    >
+                                        Add Evaluation for {course.title}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                </div>
+                            ))}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 )
@@ -177,7 +233,7 @@ export default function StudentTable({
     ]
 
     const table = useReactTable({
-        data: students || [],
+        data: students,
         columns,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,

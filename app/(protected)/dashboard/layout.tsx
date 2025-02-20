@@ -18,6 +18,7 @@ import {
 import { cn } from '@/lib/utils'
 import { logout } from '@/actions/logout'
 import { useCurrentRole } from '@/hook/use-current-role'
+import Image from 'next/image'
 
 const navigationTeacher = [
     {
@@ -32,7 +33,7 @@ const navigationTeacher = [
     },
     {
         name: 'Gestion des évaluations',
-        href: '/dashboard/evaluations',
+        href: '/dashboard/teacher/evaluations',
         icon: UsersIcon,
     },
 ]
@@ -94,9 +95,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                             {/* Sidebar component, swap this element with another sidebar if you like */}
                             <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
                                 <div className="flex h-16 shrink-0 items-center">
-                                    <img
+                                    <Image
+                                        width={100}
+                                        height={100}
                                         alt="Your Company"
-                                        src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600"
+                                        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTezdfcU9njA1vtJ9KO_XAZuRbP6jNakpw7JA&s"
                                         className="h-8 w-auto"
                                     />
                                 </div>
@@ -120,8 +123,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                                                             className={cn(
                                                                 item.href ===
                                                                     pathname
-                                                                    ? 'bg-gray-50 text-indigo-600'
-                                                                    : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600',
+                                                                    ? 'bg-gray-50 text-secondary'
+                                                                    : 'text-gray-700 hover:bg-gray-50 hover:text-secondary',
                                                                 'group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold'
                                                             )}
                                                         >
@@ -130,8 +133,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                                                                 className={cn(
                                                                     item.href ===
                                                                         pathname
-                                                                        ? 'text-indigo-600'
-                                                                        : 'text-gray-400 group-hover:text-indigo-600',
+                                                                        ? 'text-secondary'
+                                                                        : 'text-gray-400 group-hover:text-secondary',
                                                                     'size-6 shrink-0'
                                                                 )}
                                                             />
@@ -144,7 +147,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                                         <li className="mt-auto">
                                             <button
                                                 onClick={() => logout()}
-                                                className="w-full group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+                                                className="w-full group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-secondary"
                                             >
                                                 <ArrowLeftEndOnRectangleIcon
                                                     aria-hidden="true"
@@ -165,9 +168,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     {/* Sidebar component, swap this element with another sidebar if you like */}
                     <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4">
                         <div className="flex h-16 shrink-0 items-center">
-                            <img
+                            <Image
+                                width={100}
+                                height={100}
                                 alt="Your Company"
-                                src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600"
+                                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTezdfcU9njA1vtJ9KO_XAZuRbP6jNakpw7JA&s"
                                 className="h-8 w-auto"
                             />
                         </div>
@@ -187,8 +192,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                                                     href={item.href}
                                                     className={cn(
                                                         item.href === pathname
-                                                            ? 'bg-gray-50 text-indigo-600'
-                                                            : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600',
+                                                            ? 'bg-gray-50 text-secondary'
+                                                            : 'text-gray-700 hover:bg-gray-50 hover:text-secondary',
                                                         'group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold'
                                                     )}
                                                 >
@@ -197,8 +202,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                                                         className={cn(
                                                             item.href ===
                                                                 pathname
-                                                                ? 'text-indigo-600'
-                                                                : 'text-gray-400 group-hover:text-indigo-600',
+                                                                ? 'text-secondary'
+                                                                : 'text-gray-400 group-hover:text-secondary',
                                                             'size-6 shrink-0'
                                                         )}
                                                     />
@@ -211,7 +216,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                                 <li className="mt-auto">
                                     <button
                                         onClick={() => logout()}
-                                        className="w-full group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+                                        className="w-full group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-secondary"
                                     >
                                         <ArrowLeftEndOnRectangleIcon
                                             aria-hidden="true"

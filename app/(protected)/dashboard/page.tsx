@@ -5,7 +5,6 @@ import { redirect } from 'next/navigation'
 
 export default function Page() {
     const role = useCurrentRole()
-
     if (role === 'TEACHER') {
         redirect('/dashboard/teacher')
     } else {

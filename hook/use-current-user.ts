@@ -1,7 +1,13 @@
 import { useSession } from 'next-auth/react'
 
+type User = {
+    id: string
+    name: string
+    email: string
+    role: 'TEACHER' | 'STUDENT'
+}
+
 export function useCurrentUser() {
     const session = useSession()
-    if (!session.data?.user) window.location.reload()
-    return session.data?.user
+    return session.data?.user as User
 }

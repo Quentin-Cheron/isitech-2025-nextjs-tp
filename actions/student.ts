@@ -17,17 +17,25 @@ export async function getAllStudents() {
             },
         })
 
-        console.log(students)
-
         // Map the students to include course, progress, and evaluation
         const mappedStudents = students.map((student) => ({
             id: student.id,
             name: student.name,
             email: student.email,
-            course: student.enrollments.map((e) => e.course.title).join(', '),
-            progress: student.progresses.map((p) => p.evaluation).join(', '),
-            evaluation: student.progresses.map((p) => p.comments).join(', '),
+            course:
+                student.enrollments.length > 0
+                    ? student.enrollments.map((e) => e.course.title).join(', ')
+                    : 'No courses',
+            progress:
+                student.progresses.length > 0
+                    ? student.progresses.map((p) => p.evaluation).join(', ')
+                    : 'No progress',
+            evaluation:
+                student.progresses.length > 0
+                    ? student.progresses.map((p) => p.comments).join(', ')
+                    : 'No evaluations',
         }))
+
         return { students: mappedStudents }
     } catch (error) {
         return { error }
@@ -88,6 +96,39 @@ export async function deleteStudentById(id: string) {
             where: { id },
         })
         return { student }
+    } catch (error) {
+        return { error }
+    }
+}
+
+export async function getStudentsByTeacherId(teacherId: string) {
+    try {
+        const students = await db.student.findMany({
+            include: {
+                enrollments: {
+                    include: {
+                        course: true,
+                    },
+                    where: {
+                        course: {
+                            teacherId: teacherId,
+                        },
+                    },
+                },
+            },
+        })
+
+        const mappedStudents = students.map((student) => ({
+            id: student.id,
+            name: student.name,
+            email: student.email,
+            courses: student.enrollments.map((e) => ({
+                id: e.course.id,
+                title: e.course.title,
+            })),
+        }))
+
+        return { students: mappedStudents }
     } catch (error) {
         return { error }
     }

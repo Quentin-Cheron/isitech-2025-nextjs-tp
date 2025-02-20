@@ -24,7 +24,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
-import { z } from 'zod'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -36,16 +35,23 @@ import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu'
 import { addEnrollmentAction } from '@/data/enrollment'
 import { notifyError, notifySuccess } from '@/lib/notify'
 import { useCurrentUser } from '@/hook/use-current-user'
-import { ArrowUpDown, MoreHorizontal } from 'lucide-react'
+import { MoreHorizontal } from 'lucide-react'
 import { getEnrollmentByStudentId } from '@/actions/enrollment'
 
-type Course = {
+type EnrollmentWithCourse = {
     id: string
-    title: string
-    description: string
-    instrument: string
-    level: string
-    schedule: string
+    studentId: string
+    courseId: string
+    enrollmentDate: string
+    status: string
+    course: {
+        id: string
+        title: string
+        description: string
+        instrument: string
+        level: string
+        schedule: string
+    }
 }
 
 export default function StudentTable() {
@@ -59,19 +65,18 @@ export default function StudentTable() {
 
     const user = useCurrentUser()
 
-    const [data, setData] = useState<Course[]>([])
+    const [data, setData] = useState<EnrollmentWithCourse[]>([])
 
     const getData = async () => {
         const enrollments = await getEnrollmentByStudentId(user.id)
-        console.log(enrollments)
         setData(enrollments)
     }
 
     useEffect(() => {
         getData()
-    }, [])
+    }, [user.id])
 
-    const columns: ColumnDef<Course>[] = [
+    const columns: ColumnDef<EnrollmentWithCourse>[] = [
         {
             id: 'select',
             header: ({ table }) => (
@@ -97,6 +102,31 @@ export default function StudentTable() {
             enableHiding: false,
         },
         {
+            accessorKey: 'course.title',
+            header: 'Course Title',
+            cell: ({ row }) => <div>{row.original.course.title}</div>,
+        },
+        {
+            accessorKey: 'course.description',
+            header: 'Description',
+            cell: ({ row }) => <div>{row.original.course.description}</div>,
+        },
+        {
+            accessorKey: 'course.instrument',
+            header: 'Instrument',
+            cell: ({ row }) => <div>{row.original.course.instrument}</div>,
+        },
+        {
+            accessorKey: 'course.level',
+            header: 'Level',
+            cell: ({ row }) => <div>{row.original.course.level}</div>,
+        },
+        {
+            accessorKey: 'course.schedule',
+            header: 'Schedule',
+            cell: ({ row }) => <div>{row.original.course.schedule}</div>,
+        },
+        {
             accessorKey: 'status',
             header: 'Status',
             cell: ({ row }) => (
@@ -105,7 +135,7 @@ export default function StudentTable() {
         },
         {
             accessorKey: 'enrollmentDate',
-            header: 'Status',
+            header: 'Enrollment Date',
             cell: ({ row }) => (
                 <div className="capitalize">
                     {new Date(
@@ -113,33 +143,6 @@ export default function StudentTable() {
                     ).toLocaleDateString()}
                 </div>
             ),
-        },
-        {
-            id: 'actions',
-            enableHiding: false,
-            cell: ({ row }) => {
-                const course = row.original
-
-                return (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
-                                <MoreHorizontal />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem>
-                                <span className="w-full cursor-pointer">
-                                    S'inscrire au cour
-                                </span>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                )
-            },
         },
     ]
 

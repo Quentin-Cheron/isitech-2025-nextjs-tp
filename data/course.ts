@@ -66,7 +66,6 @@ export const updateCourse = async (
 }
 
 export async function deleteCourseById(id: string) {
-    console.log(id)
     try {
         return await db.course.delete({
             where: {

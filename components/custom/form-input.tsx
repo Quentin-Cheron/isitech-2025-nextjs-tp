@@ -34,7 +34,7 @@ export default function FormInput({
                 <Textarea
                     id={name}
                     name={name}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     required={required}
                     {...register(name, {
                         ...validation,
@@ -46,7 +46,7 @@ export default function FormInput({
                     id={name}
                     type={type}
                     name={name}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     required={required}
                     {...register(name, {
                         ...validation,

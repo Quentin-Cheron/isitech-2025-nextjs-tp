@@ -2,15 +2,16 @@
 
 import { getCoursesByTeacherId } from '@/actions/course'
 import TeacherTable from '@/components/dashboard/teacher-table'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useCurrentRole } from '@/hook/use-current-role'
 import { useCurrentUser } from '@/hook/use-current-user'
 import { Course } from '@prisma/client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 
 export default function Page() {
-    const [loading, setLoading] = useState(false)
     const [data, setData] = useState<Course[]>([])
     const [error, setError] = useState<string | null>(null)
+    const [isPending, startTransition] = useTransition()
 
     const user = useCurrentUser()
     const role = useCurrentRole()
@@ -22,34 +23,34 @@ export default function Page() {
     }, [role, user])
 
     const getData = async () => {
-        setLoading(true)
-        setError(null)
-        try {
-            const res = await getCoursesByTeacherId(user?.id || '')
-            if (res.error) {
-                throw new Error(res.error)
-            }
-            setData(res.courses)
-        } catch (err) {
-            setError(err.message)
-        } finally {
-            setLoading(false)
-        }
+        startTransition(() => {
+            getCoursesByTeacherId(user.id).then((res) => {
+                if (res.error) {
+                    setError(res.error)
+                    return
+                }
+                setData(res.courses || [])
+            })
+        })
     }
 
     if (role !== 'TEACHER') {
         return <h1>You are not authorized to access this page</h1>
     }
 
+    useEffect(() => {
+        if (user) {
+            getData()
+        }
+    }, [])
+
     return (
         <>
-            {error && <p>Error: {error}</p>}
-            <TeacherTable
-                loading={loading}
-                user={user}
-                getData={getData}
-                data={data}
-            />
+            {isPending ? (
+                <Skeleton className="h-[136px] w-full rounded-xl" />
+            ) : (
+                <TeacherTable user={user} getData={getData} data={data} />
+            )}
         </>
     )
 }
